@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -30,7 +30,6 @@ import {
 } from "@/components/ui";
 import {
   dateLabel,
-  freshTasks,
   loadWorkspace,
   starter,
   withoutPhotos,
@@ -40,9 +39,11 @@ import {
   type View,
   type Workspace,
 } from "@/lib/model";
+import { PropertyForm, UnsavedChangesDialog } from "@/components/property-form";
 const views: View[] = [
   "home",
   "properties",
+  "add-property",
   "detail",
   "cleaner",
   "turnovers",
@@ -58,9 +59,20 @@ export default function HomePage() {
   const [greeting, setGreeting] = useState("Hello");
   const [notice, setNotice] = useState("");
   const [reportId, setReportId] = useState<string>();
-  const dialog = useRef<HTMLDialogElement>(null);
-  const [newName, setNewName] = useState("");
-  const [newAddress, setNewAddress] = useState("");
+  const formDirty = useRef(false);
+  const activeView = useRef<View>(view);
+  activeView.current = view;
+  const sessionPhotoUrls = useRef(new Set<string>());
+  const [pendingNavigation, setPendingNavigation] = useState<View | null>(null);
+  const onFormDirtyChange = useCallback((dirty: boolean) => {
+    formDirty.current = dirty;
+  }, []);
+  useEffect(
+    () => () => {
+      for (const url of sessionPhotoUrls.current) URL.revokeObjectURL(url);
+    },
+    [],
+  );
   const [workspaceName, setWorkspaceName] = useState("My workspace");
   const heading = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -96,7 +108,17 @@ export default function HomePage() {
     }
     const onHash = () => {
       const hash = (location.hash.slice(1) || "home") as View;
-      if (views.includes(hash)) setView(hash);
+      if (!views.includes(hash)) return;
+      if (
+        activeView.current === "add-property" &&
+        formDirty.current &&
+        hash !== "add-property"
+      ) {
+        history.pushState(null, "", "#add-property");
+        setPendingNavigation(hash);
+        return;
+      }
+      setView(hash);
     };
     window.addEventListener("hashchange", onHash);
     setReady(true);
@@ -133,7 +155,16 @@ export default function HomePage() {
       else sessionStorage.removeItem("picsyproof-selected-report");
     } catch {}
   }, [selected, reportId, ready]);
-  function navigate(next: View) {
+  function navigate(next: View, discard = false) {
+    if (
+      view === "add-property" &&
+      next !== "add-property" &&
+      formDirty.current &&
+      !discard
+    ) {
+      setPendingNavigation(next);
+      return;
+    }
     setView(next);
     if (next !== "reports") setReportId(undefined);
     history.pushState(null, "", "#" + next);
@@ -155,18 +186,20 @@ export default function HomePage() {
           (r) => r.propertyId === p.id && r.completedAt === p.completedAt,
         ),
     ).length;
-  const photos = [
-    ...data.records.flatMap((r) => r.tasks),
-    ...data.properties
-      .filter(
-        (p) =>
-          !p.completedAt ||
-          !data.records.some(
-            (r) => r.propertyId === p.id && r.completedAt === p.completedAt,
-          ),
-      )
-      .flatMap((p) => p.tasks),
-  ].filter((t) => t.photo).length;
+  const photos =
+    data.properties.reduce((sum, p) => sum + (p.photos?.length || 0), 0) +
+    [
+      ...data.records.flatMap((r) => r.tasks),
+      ...data.properties
+        .filter(
+          (p) =>
+            !p.completedAt ||
+            !data.records.some(
+              (r) => r.propertyId === p.id && r.completedAt === p.completedAt,
+            ),
+        )
+        .flatMap((p) => p.tasks),
+    ].filter((t) => t.photo).length;
   function select(p: Property, next: View = "detail") {
     setSelected(p.id);
     setReportId(undefined);
@@ -187,7 +220,11 @@ export default function HomePage() {
     }));
   }
   function finish() {
-    if (!current || current.completedAt || !current.tasks.every((t) => t.done))
+    if (
+      !current ||
+      current.completedAt ||
+      !current.tasks.every((t) => t.done && (!t.requiresPhoto || t.photo))
+    )
       return;
     const completedAt = new Date().toISOString();
     const id = crypto.randomUUID();
@@ -245,6 +282,7 @@ export default function HomePage() {
                 id: t.id,
                 label: t.label,
                 done: false,
+                requiresPhoto: t.requiresPhoto,
               })),
             }
           : p,
@@ -252,30 +290,29 @@ export default function HomePage() {
     }));
     navigate("cleaner");
   }
-  function addProperty(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newName.trim() || !newAddress.trim()) return;
-    const id = crypto.randomUUID();
-    setData((d) => ({
-      ...d,
-      properties: [
-        ...d.properties,
-        {
-          id,
-          name: newName.trim(),
-          address: newAddress.trim(),
-          tasks: freshTasks(),
-        },
-      ],
-    }));
-    setSelected(id);
-    dialog.current?.close();
-    setNewName("");
-    setNewAddress("");
-    navigate("detail");
+  async function saveNewProperty(property: Property) {
+    const next = { ...data, properties: [...data.properties, property] };
+    // Confirm the existing local store accepted the record before leaving the form.
+    localStorage.setItem(
+      "picsyproof-workspace-v2",
+      JSON.stringify(withoutPhotos(next)),
+    );
+    for (const photo of property.photos || [])
+      sessionPhotoUrls.current.add(photo.url);
+    formDirty.current = false;
+    setData(next);
+    setSelected(property.id);
+    setNotice(
+      "Property saved locally on this device." +
+        (property.photos?.length
+          ? " Photo previews will disappear on reload."
+          : ""),
+    );
+    navigate("properties", true);
   }
   function openAdd() {
-    dialog.current?.showModal();
+    setNotice("");
+    navigate("add-property");
   }
   async function copyLink() {
     try {
@@ -304,19 +341,42 @@ export default function HomePage() {
     </div>
   );
   return (
-    <div className="app-shell">
-      <MobileHeader view={view} navigate={navigate} />
+    <div
+      className={
+        "app-shell" +
+        (view === "add-property" ? " property-creation-shell" : "")
+      }
+    >
+      <MobileHeader
+        view={view}
+        navigate={navigate}
+        onBack={
+          view === "add-property" ? () => navigate("properties") : undefined
+        }
+      />
       <main
         ref={heading}
         tabIndex={-1}
         id="main-content"
         data-ready={ready}
         className={
-          "main-content " + (view === "home" ? "dashboard" : "interior")
+          "main-content " +
+          (view === "home"
+            ? "dashboard"
+            : view === "add-property"
+              ? "property-creation"
+              : "interior")
         }
         aria-label={view + " screen"}
       >
-        {view === "home" ? (
+        {view === "add-property" ? (
+          <PropertyForm
+            properties={data.properties}
+            onSave={saveNewProperty}
+            onDirtyChange={onFormDirtyChange}
+            onCancel={() => navigate("properties")}
+          />
+        ) : view === "home" ? (
           <>
             <section className="hero">
               <div className="hero-image">
@@ -572,14 +632,16 @@ export default function HomePage() {
                     <h2>
                       {current.completedAt
                         ? "Turnover recorded."
-                        : current.tasks.every((t) => t.done)
+                        : current.tasks.every(
+                              (t) => t.done && (!t.requiresPhoto || t.photo),
+                            )
                           ? "Every detail, taken care of."
                           : "One detail at a time."}
                     </h2>
                     <p className="muted">
                       {current.completedAt
                         ? "Your local report is ready to view."
-                        : "Complete all tasks to create a local completion record."}
+                        : "Complete all tasks and required photo previews to create a local completion record."}
                     </p>
                   </div>
                   {current.completedAt ? (
@@ -593,7 +655,11 @@ export default function HomePage() {
                     </div>
                   ) : (
                     <SwoopButton
-                      disabled={!current.tasks.every((t) => t.done)}
+                      disabled={
+                        !current.tasks.every(
+                          (t) => t.done && (!t.requiresPhoto || t.photo),
+                        )
+                      }
                       onClick={finish}
                     >
                       Finish Turnover <CheckCircle2 size={20} />
@@ -777,24 +843,28 @@ export default function HomePage() {
             )}
           </>
         )}
-        <footer className="app-footer">
-          <Camera size={16} />
-          <span>
-            PicsyProof <span>·</span> A little care. A clearer record.
-          </span>
-          <button
-            onClick={() => navigate("settings")}
-            aria-label="Open settings"
-          >
-            <Settings size={19} />
-          </button>
-          <small>
-            Local prototype · photos and device timestamps are unverified.
-          </small>
-        </footer>
+        {view !== "add-property" && (
+          <footer className="app-footer">
+            <Camera size={16} />
+            <span>
+              PicsyProof <span>·</span> A little care. A clearer record.
+            </span>
+            <button
+              onClick={() => navigate("settings")}
+              aria-label="Open settings"
+            >
+              <Settings size={19} />
+            </button>
+            <small>
+              Local prototype · photos and device timestamps are unverified.
+            </small>
+          </footer>
+        )}
       </main>
       {/* Keep fixed navigation outside main and any transformed/filtered containers. */}
-      <BottomNavigation view={view} navigate={navigate} />
+      {view !== "add-property" && (
+        <BottomNavigation view={view} navigate={navigate} />
+      )}
       {notice && (
         <div className="toast" role="status">
           <span>{notice}</span>
@@ -806,60 +876,16 @@ export default function HomePage() {
           </button>
         </div>
       )}
-      <dialog
-        ref={dialog}
-        className="property-dialog"
-        onClick={(e) => {
-          if (e.target === dialog.current) dialog.current.close();
+      <UnsavedChangesDialog
+        destination={pendingNavigation}
+        onStay={() => setPendingNavigation(null)}
+        onDiscard={() => {
+          const next = pendingNavigation;
+          setPendingNavigation(null);
+          formDirty.current = false;
+          if (next) navigate(next, true);
         }}
-      >
-        <form onSubmit={addProperty}>
-          <button
-            type="button"
-            className="dialog-close"
-            aria-label="Close add property"
-            onClick={() => dialog.current?.close()}
-          >
-            <X />
-          </button>
-          <span className="eyebrow">A NEW SPACE</span>
-          <h2>Add your property</h2>
-          <p className="muted">
-            A beautiful clean starts here. Saved only in this browser.
-          </p>
-          <label>
-            Property name
-            <input
-              autoFocus
-              required
-              maxLength={100}
-              placeholder="e.g. Seaside Cottage"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-            />
-          </label>
-          <label>
-            City / location
-            <input
-              required
-              maxLength={150}
-              placeholder="e.g. Charleston, SC"
-              value={newAddress}
-              onChange={(e) => setNewAddress(e.target.value)}
-            />
-          </label>
-          <p className="local-caption">
-            An illustrative property image will be used.
-          </p>
-          <SwoopButton
-            type="submit"
-            disabled={!newName.trim() || !newAddress.trim()}
-          >
-            <Plus size={20} />
-            Add Property
-          </SwoopButton>
-        </form>
-      </dialog>
+      />
     </div>
   );
 }

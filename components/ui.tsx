@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import {
+  ArrowLeft,
   ArrowRight,
   Camera,
   Check,
@@ -65,9 +66,11 @@ export const navigation: { view: View; label: string; icon: typeof Home }[] = [
 export function MobileHeader({
   view,
   navigate,
+  onBack,
 }: {
   view: View;
   navigate: (v: View) => void;
+  onBack?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
@@ -91,10 +94,23 @@ export function MobileHeader({
             d="M0 0H296C266 0 253 31 229 46C207 60 184 61 153 61H53C29 61 9 69 0 84Z"
           />
         </svg>
+        {onBack && (
+          <button
+            type="button"
+            className="property-header-back"
+            onClick={onBack}
+            aria-label="Back to My Properties"
+          >
+            <ArrowLeft />
+          </button>
+        )}
         <a
           className="brand"
           href="#home"
-          onClick={() => navigate("home")}
+          onClick={(e) => {
+            e.preventDefault();
+            navigate("home");
+          }}
           aria-label="PicsyProof home"
         >
           <span className="brand-camera">
@@ -112,14 +128,20 @@ export function MobileHeader({
                 key={n.view}
                 href={"#" + n.view}
                 aria-current={view === n.view ? "page" : undefined}
-                onClick={() => navigate(n.view)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate(n.view);
+                }}
               >
                 {n.label}
               </a>
             ))}
           <a
             href="#settings"
-            onClick={() => navigate("settings")}
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("settings");
+            }}
             aria-label="Settings"
           >
             <Settings size={20} />
@@ -155,7 +177,8 @@ export function MobileHeader({
             <a
               key={n.view}
               href={"#" + n.view}
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
                 navigate(n.view);
                 setOpen(false);
               }}
@@ -402,6 +425,9 @@ export function TurnoverChecklist({
             <span>
               <small>STEP {String(i + 1).padStart(2, "0")}</small>
               <strong>{t.label}</strong>
+              {t.requiresPhoto && (
+                <small>Photo required · local preview only</small>
+              )}
             </span>
           </label>
           <PhotoUploader

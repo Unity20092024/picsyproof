@@ -1,9 +1,28 @@
-export type Task = { id: string; label: string; done: boolean; photo?: string };
+export type Task = {
+  id: string;
+  label: string;
+  done: boolean;
+  photo?: string;
+  requiresPhoto?: boolean;
+};
+export type PropertyPhoto = { id: string; name: string; url: string };
 export type Property = {
   id: string;
   name: string;
   address: string;
   image?: string;
+  photos?: PropertyPhoto[];
+  propertyType?: string;
+  otherType?: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  guests?: number;
+  cleaningSetup?: {
+    mode: "default" | "copy" | "custom";
+    sourcePropertyId?: string;
+    frequency: string;
+    customFrequency?: string;
+  };
   sample?: boolean;
   tasks: Task[];
   completedAt?: string;
@@ -21,6 +40,7 @@ export type Workspace = { properties: Property[]; records: RecordEntry[] };
 export type View =
   | "home"
   | "properties"
+  | "add-property"
   | "detail"
   | "cleaner"
   | "turnovers"
@@ -118,7 +138,14 @@ export function withoutPhotos(data: Workspace): Workspace {
       return task;
     });
   return {
-    properties: data.properties.map((p) => ({ ...p, tasks: strip(p.tasks) })),
+    properties: data.properties.map(({ photos, ...p }) => {
+      void photos; // Original property files remain in browser memory only.
+      return {
+        ...p,
+        image: p.image?.startsWith("blob:") ? undefined : p.image,
+        tasks: strip(p.tasks),
+      };
+    }),
     records: data.records.map((r) => ({ ...r, tasks: strip(r.tasks) })),
   };
 }

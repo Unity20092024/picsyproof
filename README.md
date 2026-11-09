@@ -40,3 +40,7 @@ npm run test:navigation
 Browser tests use installed Chromium at `/usr/bin/chromium`. Set `CHROMIUM_PATH` for another installation and `BASE_URL` for a different app address. Test dependencies are development-only. Tests use isolated local browser contexts.
 
 See [QA and delivery notes](docs/BUILD-NOTES.md), [mobile navigation diagnosis](docs/NAVIGATION-QA.md), and [screenshots](docs/qa/).
+
+## Screen C — Add New Property
+
+The full property setup form replaces the former small dialog, with local photo previews, cover/reorder controls, property details, default/copied/custom checklists, turnover preferences and unsaved-change protection. See [Screen C implementation and QA](docs/SCREEN-C.md). Run its browser checks with `npm run test:property-form`.
