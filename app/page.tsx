@@ -1,59 +1,865 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Camera, Check, CheckCircle2, ClipboardCheck, Download, Moon, Sun, Monitor, Home, ImagePlus, Link2, Plus, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
-
-type Task = { id: string; label: string; done: boolean; photo?: string };
-type Property = { id: string; name: string; address: string; tasks: Task[]; completedAt?: string };
-const checklist = ["Entryway is clean and ready", "Kitchen counters, sink and appliances", "Bathroom cleaned and restocked", "Beds made and linens replaced", "Floors vacuumed or mopped", "Final room-condition photos"];
-const starter: Property[] = [
- { id: "loft", name: "North Loop Loft", address: "Minneapolis, MN", tasks: checklist.map((label,i)=>({id:String(i),label,done:false})) },
- { id: "studio", name: "The Garden Studio", address: "Saint Paul, MN", tasks: checklist.map((label,i)=>({id:String(i),label,done:false})) }
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  CheckCircle2,
+  Download,
+  Home,
+  Link2,
+  MapPin,
+  Plus,
+  Settings,
+  Sparkles,
+  Sun,
+  X,
+} from "lucide-react";
+import {
+  BottomNavigation,
+  EvidenceReport,
+  MobileHeader,
+  ProgressIndicator,
+  PropertyCard,
+  StatCard,
+  StatusBadge,
+  SwoopButton,
+  SwoopCard,
+  ThemeSwitcher,
+  TurnoverChecklist,
+} from "@/components/ui";
+import {
+  dateLabel,
+  freshTasks,
+  loadWorkspace,
+  starter,
+  withoutPhotos,
+  type Property,
+  type Task,
+  type Theme,
+  type View,
+  type Workspace,
+} from "@/lib/model";
+const views: View[] = [
+  "home",
+  "properties",
+  "detail",
+  "cleaner",
+  "turnovers",
+  "reports",
+  "settings",
 ];
-function newId(){ return Math.random().toString(36).slice(2,9); }
 export default function HomePage() {
- const [properties,setProperties]=useState<Property[]>(starter);
- const [selected,setSelected]=useState("loft");
- const [view,setView]=useState<"dashboard"|"cleaner"|"report">("dashboard");
- const [modal,setModal]=useState(false);
- const [newName,setNewName]=useState("");
- const [newAddress,setNewAddress]=useState("");
- const [ready,setReady]=useState(false);
- const [copied,setCopied]=useState(false);
- const [theme,setTheme]=useState<"system"|"light"|"dark">("system");
- useEffect(()=>{try { const stored=localStorage.getItem("picsyproof-theme");if(stored==="light"||stored==="dark"||stored==="system")setTheme(stored); }catch{}},[]);
- useEffect(()=>{document.documentElement.dataset.theme=theme;try{localStorage.setItem("picsyproof-theme",theme);}catch{}},[theme]);
- useEffect(()=>{try { const saved=localStorage.getItem("picsyproof-pilot-v1"); if(saved){ const data=JSON.parse(saved); if(Array.isArray(data)&&data.length) setProperties(data); }}catch{} setReady(true);},[]);
- useEffect(()=>{if(ready) try{localStorage.setItem("picsyproof-pilot-v1",JSON.stringify(properties.map(p=>({...p,tasks:p.tasks.map(t=>({...t,photo:undefined}))}))));}catch{}},[properties,ready]);
- const current=properties.find(p=>p.id===selected)||properties[0];
- const totalDone=properties.reduce((sum,p)=>sum+p.tasks.filter(t=>t.done).length,0);
- const progress=current?Math.round(current.tasks.filter(t=>t.done).length/current.tasks.length*100):0;
- function updateTask(id:string,patch:Partial<Task>) {setProperties(prev=>prev.map(p=>p.id===selected?{...p,completedAt:undefined,tasks:p.tasks.map(t=>t.id===id?{...t,...patch}:t)}:p));}
- function addProperty(){if(!newName.trim())return;const id=newId();setProperties(p=>[...p,{id,name:newName.trim(),address:newAddress.trim()||"Location not specified",tasks:checklist.map((label,i)=>({id:String(i),label,done:false}))}]);setSelected(id);setModal(false);setNewName("");setNewAddress("");}
- function markComplete(){if(progress!==100)return;setProperties(prev=>prev.map(p=>p.id===selected?{...p,completedAt:new Date().toISOString()}:p));setView("report");}
- function shareCleaner(){const link=location.origin+"?demo=cleaner&property="+encodeURIComponent(selected);navigator.clipboard?.writeText(link).then(()=>setCopied(true)).catch(()=>setCopied(false));}
- useEffect(()=>{const query=new URLSearchParams(location.search);if(query.get("demo")==="cleaner"){setView("cleaner");const id=query.get("property");if(id)setSelected(id);}},[]);
- if(!current)return null;
- return <div className="app-shell">
-  <aside className="sidebar"><div className="logo"><div className="brand-mark"><Camera size={20}/></div><span>Picsy<span className="accent">Proof</span></span></div><div className="side-caption">WORKSPACE</div><button className={"nav-link "+(view==="dashboard"?"active":"")} onClick={()=>setView("dashboard")}><Home size={18}/> Overview</button><button className={"nav-link "+(view==="cleaner"?"active":"")} onClick={()=>setView("cleaner")}><ClipboardCheck size={18}/> Cleaner preview</button><button className={"nav-link "+(view==="report"?"active":"")} onClick={()=>setView("report")}><ShieldCheck size={18}/> Evidence report</button><div className="theme-panel"><span className="theme-panel-label">APPEARANCE</span><div className="theme-options" aria-label="Appearance theme">{(["light","dark","system"] as const).map(mode=><button key={mode} type="button" aria-label={mode+" mode"} title={mode+" mode"} aria-pressed={theme===mode} className={theme===mode?"theme-choice selected":"theme-choice"} onClick={()=>setTheme(mode)}>{mode==="light"?<Sun size={17}/>:mode==="dark"?<Moon size={17}/>:<Monitor size={17}/>}</button>)}</div></div><div className="sidebar-bottom"><span className="status-dot"/> PILOT PREVIEW <p>Sample workspace · not connected to a backend</p></div></aside>
-  <main className="main">
-   <header className="topbar"><div className="mobile-logo"><Camera size={18}/> Picsy<span className="accent">Proof</span></div><div className="breadcrumb">Workspace <span>/</span> {view==="dashboard"?"Overview":view==="cleaner"?"Cleaner preview":"Evidence report"}</div><div className="topbar-tools"><button className="mobile-theme-toggle" type="button" title="Change appearance" aria-label={"Change appearance, currently "+theme} onClick={()=>setTheme(theme==="system"?"light":theme==="light"?"dark":"system")}>{theme==="dark"?<Moon size={17}/>:theme==="light"?<Sun size={17}/>:<Monitor size={17}/>}</button><span className="preview-label">INTERACTIVE DEMO</span></div></header>
-   {view==="dashboard" && <div className="content">
-    <section className="studio-hero"><div className="hero-copy"><div className="hero-kicker"><span className="hero-kicker-dot"/> A CLEARER WAY TO MANAGE TURNOVERS</div><h1>Every detail.<br/><em>Beautifully clear.</em></h1><p>A thoughtfully simple place to organize cleaning checklists, photos, and turnover records.</p><button className="hero-cta" onClick={()=>setModal(true)}><Plus size={18}/> Add your property <ArrowRight size={17}/></button></div><div className="hero-art" aria-hidden="true"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="proof-sample"><div className="proof-sample-top"><span className="proof-sample-icon"><Camera size={19}/></span><span className="sample-time">TURNOVER RECORD</span><span className="sample-dots">•••</span></div><div className="proof-sample-image"><Home size={52}/><span className="sample-image-tag">PROPERTY PHOTO</span></div><div className="proof-sample-footer"><span><CheckCircle2 size={16}/> Checklist complete</span><span>6 / 6</span></div></div><div className="floating-proof"><ShieldCheck size={19}/> Proof saved <span>✓</span></div></div></section>
-    <div className="stats"><div className="stat"><span>Properties</span><strong>{properties.length.toString().padStart(2,"0")}</strong><small>In your workspace</small></div><div className="stat"><span>Tasks completed</span><strong>{totalDone}</strong><small>Across properties</small></div><div className="stat"><span>Proof reports</span><strong>{properties.filter(p=>p.completedAt).length.toString().padStart(2,"0")}</strong><small>Completed turnovers</small></div></div>
-    <div className="section-line"><div><div className="section-overline">YOUR SPACE</div><h2>Your properties</h2><p className="muted">Choose a property to preview its cleaner checklist.</p></div></div>
-    <div className="property-grid">{properties.map((p,i)=>{const done=p.tasks.filter(t=>t.done).length;return <button className="property-card swoop-card" key={p.id} onClick={()=>{setSelected(p.id);setView("cleaner");}}><div className={"property-visual visual-"+(i%3)}><Home size={35}/><span className="property-icon">↗</span></div><div className="property-body"><div className="property-title"><strong>{p.name}</strong><ArrowRight size={18}/></div><p>{p.address}</p><div className="progress-track"><div style={{width:(done/p.tasks.length*100)+"%"}}/></div><div className="property-foot"><span>{done} of {p.tasks.length} tasks</span><span className={p.completedAt?"chip done":"chip"}>{p.completedAt?"Report ready":"In progress"}</span></div></div></button>})}</div>
-    <div className="note"><ShieldCheck size={21}/><div><strong>Proof should be easy, not another job.</strong><p>This pilot lets hosts test the flow before secure accounts, photo uploads and permanent reports are added.</p></div></div>
-   </div>}
-   {view==="cleaner" && <div className="content narrower"><button className="back" onClick={()=>setView("dashboard")}><ArrowLeft size={17}/> Back to properties</button><div className="eyebrow">CLEANER EXPERIENCE · PREVIEW</div><h1>Ready to make it <em>spotless?</em></h1><p className="muted">Check each task when finished. Add a photo where it helps document the work.</p>
-    <div className="workflow-head"><div><span className="eyebrow">CURRENT PROPERTY</span><h2>{current.name}</h2><p>{current.address}</p></div><div className="round-progress">{progress}%</div></div>
-    <div className="task-header"><h2>Cleaning checklist</h2><span>{current.tasks.filter(t=>t.done).length}/{current.tasks.length} complete</span></div>
-    <div className="task-list">{current.tasks.map((task,i)=><div className={"task "+(task.done?"task-done":"")} key={task.id}><button className="task-check" aria-label={"Mark "+task.label} aria-pressed={task.done} onClick={()=>updateTask(task.id,{done:!task.done})}>{task.done?<Check size={16}/>:null}</button><div className="task-content"><strong>{task.label}</strong><span>Step {String(i+1).padStart(2,"0")}</span>{task.photo&&<img className="upload-preview" src={task.photo} alt={"Preview for "+task.label}/>}</div><label className="upload-button"><ImagePlus size={17}/><span>{task.photo?"Replace":"Photo"}</span><input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={e=>{const file=e.target.files?.[0];if(!file)return;if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>5*1024*1024){alert("Choose a JPEG, PNG, or WebP image under 5 MB.");return;}const reader=new FileReader();reader.onload=()=>updateTask(task.id,{photo:String(reader.result)});reader.readAsDataURL(file);}}/></label>{task.photo&&<button className="remove-photo" aria-label="Remove photo" onClick={()=>updateTask(task.id,{photo:undefined})}><Trash2 size={17}/></button>}</div>)}</div>
-    <div className="action-panel"><div><strong>{progress===100?"All tasks checked!":"Keep it going"}</strong><p>{progress===100?"You can create a demo completion record.":"Complete the checklist to preview the report."}</p></div><button className="primary" disabled={progress!==100} onClick={markComplete}>Finish turnover <ArrowRight size={18}/></button></div>
-    <div className="share"><Link2 size={16}/><span>Test link only (not a secure cleaner invitation)</span><button onClick={shareCleaner}>{copied?"Copied!":"Copy demo link"}</button></div>
-   </div>}
-   {view==="report" && <div className="content narrower report"><button className="back no-print" onClick={()=>setView("dashboard")}><ArrowLeft size={17}/> Back to workspace</button><div className="eyebrow">TURNOVER RECORD · DEMO</div><h1>Your work, <em>documented.</em></h1><p className="muted no-print">Preview a simple dated report. Printing allows you to save as PDF in your browser.</p><div className="report-card"><div className="report-top"><div className="report-badge"><ShieldCheck size={26}/></div><span className="chip">{current.completedAt?"Completed":"Draft"}</span></div><h2>{current.name}</h2><p className="muted">{current.address}</p><div className="report-metadata"><div><span>Completion time</span><strong>{current.completedAt?new Date(current.completedAt).toLocaleString():"Not completed"}</strong></div><div><span>Tasks checked</span><strong>{current.tasks.filter(t=>t.done).length} / {current.tasks.length}</strong></div></div><h3>Checklist results</h3>{current.tasks.map(t=><div className="report-row" key={t.id}><span className={t.done?"small-check yes":"small-check"}>{t.done?<Check size={13}/>:null}</span><span>{t.label}</span><span>{t.photo?"Photo attached":t.done?"Checked":"Pending"}</span>{t.photo&&<img src={t.photo} className="report-thumb" alt={"Evidence preview: "+t.label}/>}</div>)}<div className="report-disclaimer">PILOT DEMO — Photos are only held in this browser session. This is not a verified or tamper-resistant evidence record.</div></div><button className="primary no-print" onClick={()=>window.print()}><Download size={18}/> Print / Save PDF</button></div>}
-  </main>
-  {modal&&<div className="modal-backdrop" onClick={()=>setModal(false)}><div className="modal" onClick={e=>e.stopPropagation()}><div className="eyebrow">NEW PROPERTY</div><h2>Add your property</h2><p className="muted">Set up a place to test the turnover workflow.</p><label>Property name<input autoFocus placeholder="e.g. Uptown Guest Suite" value={newName} onChange={e=>setNewName(e.target.value)}/></label><label>Location<input placeholder="City, state" value={newAddress} onChange={e=>setNewAddress(e.target.value)}/></label><div className="modal-actions"><button className="secondary" onClick={()=>setModal(false)}>Cancel</button><button className="primary" onClick={addProperty} disabled={!newName.trim()}>Add property <ArrowRight size={16}/></button></div></div></div>}
- </div>;
+  const [data, setData] = useState<Workspace>(starter);
+  const [ready, setReady] = useState(false);
+  const [selected, setSelected] = useState("loft");
+  const [view, setView] = useState<View>("home");
+  const [theme, setTheme] = useState<Theme>("system");
+  const [greeting, setGreeting] = useState("Hello");
+  const [notice, setNotice] = useState("");
+  const [reportId, setReportId] = useState<string>();
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [newName, setNewName] = useState("");
+  const [newAddress, setNewAddress] = useState("");
+  const [workspaceName, setWorkspaceName] = useState("My workspace");
+  const heading = useRef<HTMLElement>(null);
+  useEffect(() => {
+    setData(loadWorkspace());
+    try {
+      const t = localStorage.getItem("picsyproof-theme");
+      if (t === "light" || t === "dark" || t === "system") setTheme(t);
+      setWorkspaceName(
+        localStorage.getItem("picsyproof-workspace-name") || "My workspace",
+      );
+      setSelected(
+        localStorage.getItem("picsyproof-selected-property") || "loft",
+      );
+      setReportId(
+        sessionStorage.getItem("picsyproof-selected-report") || undefined,
+      );
+    } catch {}
+    const hour = new Date().getHours();
+    setGreeting(
+      hour < 12
+        ? "Good morning"
+        : hour < 18
+          ? "Good afternoon"
+          : "Good evening",
+    );
+    const query = new URLSearchParams(location.search);
+    if (query.get("demo") === "cleaner") {
+      setView("cleaner");
+      if (query.get("property")) setSelected(query.get("property")!);
+    } else {
+      const hash = (location.hash.slice(1) || "home") as View;
+      if (views.includes(hash)) setView(hash);
+    }
+    const onHash = () => {
+      const hash = (location.hash.slice(1) || "home") as View;
+      if (views.includes(hash)) setView(hash);
+    };
+    window.addEventListener("hashchange", onHash);
+    setReady(true);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  useEffect(() => {
+    if (!ready) return;
+    try {
+      localStorage.setItem(
+        "picsyproof-workspace-v2",
+        JSON.stringify(withoutPhotos(data)),
+      );
+    } catch {
+      setNotice(
+        "Browser storage is unavailable or full. Changes will last for this session only.",
+      );
+    }
+  }, [data, ready]);
+  useEffect(() => {
+    if (!ready) return;
+    document.documentElement.dataset.theme = theme;
+    try {
+      localStorage.setItem("picsyproof-theme", theme);
+    } catch {
+      setNotice("Appearance cannot be saved in this browser.");
+    }
+  }, [theme, ready]);
+  useEffect(() => {
+    if (!ready) return;
+    try {
+      localStorage.setItem("picsyproof-selected-property", selected);
+      if (reportId)
+        sessionStorage.setItem("picsyproof-selected-report", reportId);
+      else sessionStorage.removeItem("picsyproof-selected-report");
+    } catch {}
+  }, [selected, reportId, ready]);
+  function navigate(next: View) {
+    setView(next);
+    if (next !== "reports") setReportId(undefined);
+    history.pushState(null, "", "#" + next);
+    window.scrollTo({ top: 0, behavior: "instant" });
+    requestAnimationFrame(() => heading.current?.focus());
+  }
+  const current =
+    data.properties.find((p) => p.id === selected) || data.properties[0];
+  const record = data.records.find((r) => r.id === reportId);
+  const report: Property | undefined = record
+    ? { ...record, id: record.propertyId }
+    : current;
+  const completed =
+    data.records.length +
+    data.properties.filter(
+      (p) =>
+        p.completedAt &&
+        !data.records.some(
+          (r) => r.propertyId === p.id && r.completedAt === p.completedAt,
+        ),
+    ).length;
+  const photos = [
+    ...data.records.flatMap((r) => r.tasks),
+    ...data.properties
+      .filter(
+        (p) =>
+          !p.completedAt ||
+          !data.records.some(
+            (r) => r.propertyId === p.id && r.completedAt === p.completedAt,
+          ),
+      )
+      .flatMap((p) => p.tasks),
+  ].filter((t) => t.photo).length;
+  function select(p: Property, next: View = "detail") {
+    setSelected(p.id);
+    setReportId(undefined);
+    navigate(next);
+  }
+  function updateTask(id: string, patch: Partial<Task>) {
+    if (!current || current.completedAt) return;
+    setData((d) => ({
+      ...d,
+      properties: d.properties.map((p) =>
+        p.id === current.id
+          ? {
+              ...p,
+              tasks: p.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)),
+            }
+          : p,
+      ),
+    }));
+  }
+  function finish() {
+    if (!current || current.completedAt || !current.tasks.every((t) => t.done))
+      return;
+    const completedAt = new Date().toISOString();
+    const id = crypto.randomUUID();
+    setData((d) => ({
+      ...d,
+      properties: d.properties.map((p) =>
+        p.id === current.id ? { ...p, completedAt } : p,
+      ),
+      records: [
+        {
+          id,
+          propertyId: current.id,
+          name: current.name,
+          address: current.address,
+          completedAt,
+          tasks: current.tasks.map((t) => ({ ...t })),
+          sample: current.sample,
+        },
+        ...d.records,
+      ],
+    }));
+    navigate("reports");
+    setReportId(id);
+  }
+  function newTurnover() {
+    if (!current) return;
+    setData((d) => ({
+      ...d,
+      records:
+        current.completedAt &&
+        !d.records.some(
+          (r) =>
+            r.propertyId === current.id &&
+            r.completedAt === current.completedAt,
+        )
+          ? [
+              {
+                id: crypto.randomUUID(),
+                propertyId: current.id,
+                name: current.name,
+                address: current.address,
+                completedAt: current.completedAt,
+                tasks: current.tasks.map((t) => ({ ...t })),
+                sample: current.sample,
+              },
+              ...d.records,
+            ]
+          : d.records,
+      properties: d.properties.map((p) =>
+        p.id === current.id
+          ? {
+              ...p,
+              completedAt: undefined,
+              tasks: p.tasks.map((t) => ({
+                id: t.id,
+                label: t.label,
+                done: false,
+              })),
+            }
+          : p,
+      ),
+    }));
+    navigate("cleaner");
+  }
+  function addProperty(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newName.trim() || !newAddress.trim()) return;
+    const id = crypto.randomUUID();
+    setData((d) => ({
+      ...d,
+      properties: [
+        ...d.properties,
+        {
+          id,
+          name: newName.trim(),
+          address: newAddress.trim(),
+          tasks: freshTasks(),
+        },
+      ],
+    }));
+    setSelected(id);
+    dialog.current?.close();
+    setNewName("");
+    setNewAddress("");
+    navigate("detail");
+  }
+  function openAdd() {
+    dialog.current?.showModal();
+  }
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(
+        location.origin +
+          "?demo=cleaner&property=" +
+          encodeURIComponent(current.id),
+      );
+      setNotice(
+        "Demo link copied. It opens this browser’s data only; it does not share records across devices.",
+      );
+    } catch {
+      setNotice(
+        "Clipboard unavailable. Demo link: " +
+          location.origin +
+          "?demo=cleaner&property=" +
+          encodeURIComponent(current.id),
+      );
+    }
+  }
+  const propertyList = (
+    <div className="property-grid">
+      {data.properties.map((p) => (
+        <PropertyCard key={p.id} property={p} onClick={() => select(p)} />
+      ))}
+    </div>
+  );
+  return (
+    <div className="app-shell">
+      <MobileHeader view={view} navigate={navigate} />
+      <main
+        ref={heading}
+        tabIndex={-1}
+        id="main-content"
+        data-ready={ready}
+        className={
+          "main-content " + (view === "home" ? "dashboard" : "interior")
+        }
+        aria-label={view + " screen"}
+      >
+        {view === "home" ? (
+          <>
+            <section className="hero">
+              <div className="hero-image">
+                <img
+                  src="/images/bedroom.jpg"
+                  alt="A sunlit bedroom with soft lavender linens"
+                  width="450"
+                  height="450"
+                  fetchPriority="high"
+                />
+              </div>
+              <div className="hero-copy">
+                <p className="greeting">
+                  {greeting}! <Sun size={20} aria-hidden="true" />
+                </p>
+                <h1>
+                  Your Turnovers,
+                  <br />
+                  <em>Beautifully Proven.</em>
+                </h1>
+                <p className="hero-description">
+                  Photo-proof cleaning records for your
+                  <br className="desktop-break" /> Airbnb and rental properties.
+                </p>
+              </div>
+            </section>
+            <p className="demo-label">
+              <span /> Local demo workspace · includes sample properties
+            </p>
+            <div className="stats">
+              <StatCard
+                type="properties"
+                value={data.properties.length}
+                label="Properties"
+              />
+              <StatCard type="turnovers" value={completed} label="Turnovers" />
+              <StatCard type="photos" value={photos} label="Photos" />
+            </div>
+            <SwoopButton className="add-property" onClick={openAdd}>
+              <span className="plus-circle">
+                <Plus />
+              </span>
+              Add Property
+            </SwoopButton>
+            <div className="section-title">
+              <h2>Your Properties</h2>
+              <button onClick={() => navigate("properties")}>
+                View All <ArrowRight size={19} />
+              </button>
+            </div>
+            {propertyList}
+            <section className="recent">
+              <div className="section-title">
+                <h2>Recent activity</h2>
+                <span className="eyebrow">ON THIS DEVICE</span>
+              </div>
+              {data.records.length ? (
+                data.records.slice(0, 3).map((r) => (
+                  <button
+                    key={r.id}
+                    className="activity-row"
+                    onClick={() => {
+                      setSelected(r.propertyId);
+                      navigate("reports");
+                      setReportId(r.id);
+                    }}
+                  >
+                    <CheckCircle2 />
+                    <span>
+                      <strong>{r.name}</strong>
+                      <small>
+                        Local turnover completed · {dateLabel(r.completedAt)}
+                      </small>
+                    </span>
+                    <ArrowRight size={18} />
+                  </button>
+                ))
+              ) : (
+                <SwoopCard className="empty-state">
+                  <Sparkles />
+                  <div>
+                    <h3>A fresh start, beautifully organized.</h3>
+                    <p>
+                      Your completed turnovers will appear here. Choose a
+                      property to try the checklist.
+                    </p>
+                  </div>
+                </SwoopCard>
+              )}
+            </section>
+          </>
+        ) : (
+          <>
+            <div className="page-heading">
+              <p className="eyebrow">PICSYPROOF · LOCAL PROTOTYPE</p>
+              <h1>
+                {view === "properties"
+                  ? "Your Properties"
+                  : view === "detail"
+                    ? current?.name
+                    : view === "cleaner"
+                      ? "A beautiful clean."
+                      : view === "turnovers"
+                        ? "Your Turnovers"
+                        : view === "reports"
+                          ? "Beautifully documented."
+                          : "Make yourself at home."}
+              </h1>
+              <p className="muted">
+                {view === "properties"
+                  ? "Every space, thoughtfully cared for."
+                  : view === "cleaner"
+                    ? "Check the details. Capture the care."
+                    : view === "reports"
+                      ? "Cleaning records and photo previews, all in one place."
+                      : view === "settings"
+                        ? "Your workspace. Your preferred appearance."
+                        : "Keep every detail in view."}
+              </p>
+            </div>
+            {view === "properties" && (
+              <>
+                <SwoopButton onClick={openAdd}>
+                  <Plus size={20} />
+                  Add Property
+                </SwoopButton>
+                {propertyList}
+              </>
+            )}
+            {view === "detail" && current && (
+              <>
+                <button
+                  className="back-link"
+                  onClick={() => navigate("properties")}
+                >
+                  <ArrowLeft size={17} />
+                  All properties
+                </button>
+                <SwoopCard className="property-detail">
+                  <img
+                    className="detail-image"
+                    src={current.image || "/images/living.jpg"}
+                    alt={"Illustrative interior for " + current.name}
+                    width="1000"
+                    height="500"
+                  />
+                  <div className="panel-padding">
+                    <p className="location">
+                      <MapPin size={17} />
+                      {current.address}
+                    </p>
+                    {current.sample && (
+                      <p className="eyebrow">
+                        SAMPLE PROPERTY · ILLUSTRATIVE PHOTO
+                      </p>
+                    )}
+                    <StatusBadge property={current} />
+                    <h2>Cleaning requirements</h2>
+                    <ul className="requirements">
+                      {current.tasks.map((t) => (
+                        <li key={t.id}>{t.label}</li>
+                      ))}
+                    </ul>
+                    <p className="muted">
+                      Photos are optional in this prototype. They preview
+                      locally and are not securely uploaded.
+                    </p>
+                    <div className="action-row">
+                      <SwoopButton onClick={() => navigate("cleaner")}>
+                        <Camera size={20} />
+                        {current.completedAt
+                          ? "View completed checklist"
+                          : "Open cleaning checklist"}
+                      </SwoopButton>
+                      <button
+                        className="secondary"
+                        onClick={() => navigate("reports")}
+                      >
+                        View report <ArrowRight size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </SwoopCard>
+                <h2 className="spaced-title">Turnover history</h2>
+                {data.records.filter((r) => r.propertyId === current.id)
+                  .length ? (
+                  data.records
+                    .filter((r) => r.propertyId === current.id)
+                    .map((r) => (
+                      <button
+                        className="history-row"
+                        key={r.id}
+                        onClick={() => {
+                          setSelected(r.propertyId);
+                          navigate("reports");
+                          setReportId(r.id);
+                        }}
+                      >
+                        <CheckCircle2 />
+                        <span>
+                          {dateLabel(r.completedAt)}
+                          <small>Completed · local record</small>
+                        </span>
+                        <ArrowRight size={18} />
+                      </button>
+                    ))
+                ) : (
+                  <p className="muted">No saved turnover history yet.</p>
+                )}
+              </>
+            )}
+            {view === "cleaner" && current && (
+              <>
+                <label className="property-select">
+                  Property
+                  <select
+                    value={current.id}
+                    onChange={(e) => setSelected(e.target.value)}
+                  >
+                    {data.properties.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                        {p.sample ? " (sample)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <SwoopCard className="workflow-head">
+                  <div>
+                    <p className="eyebrow">
+                      {current.sample ? "SAMPLE PROPERTY" : "YOUR PROPERTY"}
+                    </p>
+                    <h2>{current.name}</h2>
+                    <p className="location">
+                      <MapPin size={16} />
+                      {current.address}
+                    </p>
+                    <StatusBadge property={current} />
+                  </div>
+                  <ProgressIndicator tasks={current.tasks} />
+                </SwoopCard>
+                <div className="section-title">
+                  <h2>Cleaning checklist</h2>
+                  <Camera size={22} />
+                </div>
+                <p className="local-caption">
+                  Photos stay in this session only. Use Add photo to capture or
+                  choose an image.
+                </p>
+                <TurnoverChecklist property={current} update={updateTask} />
+                <SwoopCard className="finish-panel">
+                  <div>
+                    <h2>
+                      {current.completedAt
+                        ? "Turnover recorded."
+                        : current.tasks.every((t) => t.done)
+                          ? "Every detail, taken care of."
+                          : "One detail at a time."}
+                    </h2>
+                    <p className="muted">
+                      {current.completedAt
+                        ? "Your local report is ready to view."
+                        : "Complete all tasks to create a local completion record."}
+                    </p>
+                  </div>
+                  {current.completedAt ? (
+                    <div className="action-row">
+                      <SwoopButton onClick={() => navigate("reports")}>
+                        View report <ArrowRight size={18} />
+                      </SwoopButton>
+                      <button className="secondary" onClick={newTurnover}>
+                        Start next turnover
+                      </button>
+                    </div>
+                  ) : (
+                    <SwoopButton
+                      disabled={!current.tasks.every((t) => t.done)}
+                      onClick={finish}
+                    >
+                      Finish Turnover <CheckCircle2 size={20} />
+                    </SwoopButton>
+                  )}
+                </SwoopCard>
+                <button className="text-button" onClick={copyLink}>
+                  <Link2 size={16} />
+                  Copy demo cleaner link
+                </button>
+                <p className="local-caption">
+                  Preview link only. No secure invitation or cross-device
+                  sharing.
+                </p>
+              </>
+            )}
+            {view === "turnovers" && (
+              <>
+                <h2 className="spaced-title">Current checklists</h2>
+                {data.properties.map((p) => (
+                  <button
+                    key={p.id}
+                    className="history-row"
+                    onClick={() => select(p, "cleaner")}
+                  >
+                    <Home />
+                    <span>
+                      <strong>{p.name}</strong>
+                      <small>
+                        {p.tasks.filter((t) => t.done).length} of{" "}
+                        {p.tasks.length} tasks ·{" "}
+                        {p.sample ? "Sample property" : "Local property"}
+                      </small>
+                    </span>
+                    <StatusBadge property={p} />
+                    <ArrowRight size={18} />
+                  </button>
+                ))}
+                <h2 className="spaced-title">Completed history</h2>
+                {data.records.length ? (
+                  data.records.map((r) => (
+                    <button
+                      className="history-row"
+                      key={r.id}
+                      onClick={() => {
+                        setSelected(r.propertyId);
+                        navigate("reports");
+                        setReportId(r.id);
+                      }}
+                    >
+                      <CheckCircle2 />
+                      <span>
+                        <strong>{r.name}</strong>
+                        <small>{dateLabel(r.completedAt)} · Local record</small>
+                      </span>
+                      <ArrowRight size={18} />
+                    </button>
+                  ))
+                ) : (
+                  <SwoopCard className="empty-state">
+                    <CheckCircle2 />
+                    <p>
+                      No completed turnovers yet. Finish a checklist to create
+                      your first local record.
+                    </p>
+                  </SwoopCard>
+                )}
+              </>
+            )}
+            {view === "reports" && report && (
+              <>
+                <div className="report-controls no-print">
+                  <label>
+                    Property
+                    <select
+                      value={current.id}
+                      onChange={(e) => {
+                        setSelected(e.target.value);
+                        setReportId(undefined);
+                      }}
+                    >
+                      {data.properties.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Record
+                    <select
+                      value={reportId || "current"}
+                      onChange={(e) =>
+                        setReportId(
+                          e.target.value === "current"
+                            ? undefined
+                            : e.target.value,
+                        )
+                      }
+                    >
+                      <option value="current">
+                        Current checklist{" "}
+                        {current.completedAt ? "· completed" : "· draft"}
+                      </option>
+                      {data.records
+                        .filter((r) => r.propertyId === current.id)
+                        .map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {dateLabel(r.completedAt)}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                </div>
+                <EvidenceReport property={report} />
+                <SwoopButton
+                  className="no-print"
+                  onClick={() => window.print()}
+                >
+                  <Download size={19} />
+                  Print / Save PDF
+                </SwoopButton>
+              </>
+            )}
+            {view === "settings" && (
+              <div className="settings-grid">
+                <SwoopCard className="panel-padding">
+                  <h2>A little more you.</h2>
+                  <p className="muted">
+                    System follows your device. Your choice is saved in this
+                    browser.
+                  </p>
+                  <ThemeSwitcher theme={theme} setTheme={setTheme} />
+                </SwoopCard>
+                <SwoopCard className="panel-padding">
+                  <h2>Workspace</h2>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      try {
+                        localStorage.setItem(
+                          "picsyproof-workspace-name",
+                          workspaceName.trim() || "My workspace",
+                        );
+                        setNotice("Workspace name saved on this device.");
+                      } catch {
+                        setNotice(
+                          "Unable to save workspace name in this browser.",
+                        );
+                      }
+                    }}
+                  >
+                    <label>
+                      Workspace name
+                      <input
+                        maxLength={80}
+                        required
+                        value={workspaceName}
+                        onChange={(e) => setWorkspaceName(e.target.value)}
+                      />
+                    </label>
+                    <button className="secondary" type="submit">
+                      Save locally
+                    </button>
+                  </form>
+                  <p className="local-caption">
+                    Local preference only. Team access and workspace permissions
+                    are not connected.
+                  </p>
+                </SwoopCard>
+                <SwoopCard className="panel-padding">
+                  <h2>Account & profile</h2>
+                  <p className="muted">
+                    You’re exploring the local prototype. Sign-in, account
+                    editing, team invitations, secure photo storage, and
+                    permanent evidence reports are not connected to a backend.
+                  </p>
+                  <span className="status-badge ready">Not connected</span>
+                </SwoopCard>
+              </div>
+            )}
+          </>
+        )}
+        <footer className="app-footer">
+          <Camera size={16} />
+          <span>
+            PicsyProof <span>·</span> A little care. A clearer record.
+          </span>
+          <button
+            onClick={() => navigate("settings")}
+            aria-label="Open settings"
+          >
+            <Settings size={19} />
+          </button>
+          <small>
+            Local prototype · photos and device timestamps are unverified.
+          </small>
+        </footer>
+      </main>
+      {/* Keep fixed navigation outside main and any transformed/filtered containers. */}
+      <BottomNavigation view={view} navigate={navigate} />
+      {notice && (
+        <div className="toast" role="status">
+          <span>{notice}</span>
+          <button
+            aria-label="Dismiss notification"
+            onClick={() => setNotice("")}
+          >
+            <X size={18} />
+          </button>
+        </div>
+      )}
+      <dialog
+        ref={dialog}
+        className="property-dialog"
+        onClick={(e) => {
+          if (e.target === dialog.current) dialog.current.close();
+        }}
+      >
+        <form onSubmit={addProperty}>
+          <button
+            type="button"
+            className="dialog-close"
+            aria-label="Close add property"
+            onClick={() => dialog.current?.close()}
+          >
+            <X />
+          </button>
+          <span className="eyebrow">A NEW SPACE</span>
+          <h2>Add your property</h2>
+          <p className="muted">
+            A beautiful clean starts here. Saved only in this browser.
+          </p>
+          <label>
+            Property name
+            <input
+              autoFocus
+              required
+              maxLength={100}
+              placeholder="e.g. Seaside Cottage"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
+          </label>
+          <label>
+            City / location
+            <input
+              required
+              maxLength={150}
+              placeholder="e.g. Charleston, SC"
+              value={newAddress}
+              onChange={(e) => setNewAddress(e.target.value)}
+            />
+          </label>
+          <p className="local-caption">
+            An illustrative property image will be used.
+          </p>
+          <SwoopButton
+            type="submit"
+            disabled={!newName.trim() || !newAddress.trim()}
+          >
+            <Plus size={20} />
+            Add Property
+          </SwoopButton>
+        </form>
+      </dialog>
+    </div>
+  );
 }

@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-11-09T07:25:24.548Z",
+  "results": [
+    "All 7 views: 360px, no horizontal overflow",
+    "All 7 views: 390px, no horizontal overflow",
+    "All 7 views: 430px, no horizontal overflow",
+    "All 7 views: 768px, no horizontal overflow",
+    "All 7 views: 1440px, no horizontal overflow",
+    "Add property → upload/remove/replace photo → check all tasks → complete → report → print PDF → next turnover → history → reload persistence and photo expiry",
+    "All 7 views in dark mode at 360, 390, 430, 768 and 1440px, no horizontal overflow",
+    "Dark and Light overrides persist; System follows live device appearance changes",
+    "Mobile menu, settings save, native dialog Escape and navigation",
+    "No browser runtime errors; WCAG A/AA axe scans passed for light dashboard, cleaner, report, dark settings and dashboard",
+    "Legacy pilot properties, custom tasks and completed record migrate and archive correctly"
+  ],
+  "errors": []
+}

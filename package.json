@@ -5,18 +5,27 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test:ui": "node tests/verify.cjs",
+    "typecheck": "tsc --noEmit",
+    "test:navigation": "node tests/navigation.cjs"
   },
   "dependencies": {
+    "lucide-react": "^0.468.0",
     "next": "^15.3.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "lucide-react": "^0.468.0"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "playwright": "^1.65.0",
+    "prettier": "^3.9.10",
     "typescript": "^5.7.0"
+  },
+  "overrides": {
+    "postcss": "^8.5.32"
   }
 }
