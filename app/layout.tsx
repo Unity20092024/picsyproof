@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./studio.css";
+import "./theme.css";
 
 export const metadata: Metadata = {
   title: "PicsyProof | Turnover proof made simple",
