@@ -99,7 +99,11 @@ export function MobileHeader({
             type="button"
             className="property-header-back"
             onClick={onBack}
-            aria-label="Back to My Properties"
+            aria-label={
+              view === "create-turnover"
+                ? "Back from Create Turnover"
+                : "Back to My Properties"
+            }
           >
             <ArrowLeft />
           </button>

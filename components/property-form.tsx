@@ -741,10 +741,14 @@ export function CleaningSetupCard({ children }: { children: ReactNode }) {
 }
 
 export function UnsavedChangesDialog({
+  title = "Keep your property setup?",
+  description = "You have unsaved changes. Discarding will remove the details, checklist edits and selected photo previews.",
   destination,
   onStay,
   onDiscard,
 }: {
+  title?: string;
+  description?: string;
   destination: View | null;
   onStay: () => void;
   onDiscard: () => void;
@@ -764,11 +768,8 @@ export function UnsavedChangesDialog({
         onStay();
       }}
     >
-      <h2 id="unsaved-title">Keep your property setup?</h2>
-      <p className="muted">
-        You have unsaved changes. Discarding will remove the details, checklist
-        edits and selected photo previews.
-      </p>
+      <h2 id="unsaved-title">{title}</h2>
+      <p className="muted">{description}</p>
       <div className="action-row">
         <button type="button" className="secondary" autoFocus onClick={onStay}>
           Keep editing

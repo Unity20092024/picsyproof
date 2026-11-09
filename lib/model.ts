@@ -12,6 +12,8 @@ export type Property = {
   address: string;
   image?: string;
   photos?: PropertyPhoto[];
+  timeZone?: string;
+  estimatedDurationMinutes?: number;
   propertyType?: string;
   otherType?: string;
   bedrooms?: number;
@@ -28,6 +30,7 @@ export type Property = {
   completedAt?: string;
 };
 export type RecordEntry = {
+  turnoverId?: string;
   id: string;
   propertyId: string;
   name: string;
@@ -36,11 +39,47 @@ export type RecordEntry = {
   tasks: Task[];
   sample?: boolean;
 };
-export type Workspace = { properties: Property[]; records: RecordEntry[] };
+export type Cleaner = {
+  id: string;
+  name: string;
+  avatar?: string;
+  sample?: boolean;
+};
+export type Turnover = {
+  id: string;
+  propertyId: string;
+  name: string;
+  address: string;
+  sample?: boolean;
+  scheduledAt: string;
+  scheduledLocal: string;
+  timeZone: string;
+  timeZoneSource: "property" | "device";
+  cleanerId?: string;
+  cleanerName?: string;
+  cleanerIsDemo?: boolean;
+  status: "scheduled" | "in-progress" | "completed";
+  checklistSnapshot: Task[];
+  checklistSourcePropertyId: string;
+  requirePhotoEvidence: boolean;
+  notifyCleanerPreference: boolean;
+  specialInstructions: string;
+  estimatedDurationMinutes?: number;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+};
+export type Workspace = {
+  properties: Property[];
+  records: RecordEntry[];
+  turnovers: Turnover[];
+  cleaners?: Cleaner[];
+};
 export type View =
   | "home"
   | "properties"
   | "add-property"
+  | "create-turnover"
   | "detail"
   | "cleaner"
   | "turnovers"
@@ -77,6 +116,7 @@ export const starter: Workspace = {
     },
   ],
   records: [],
+  turnovers: [],
 };
 export function isProperty(value: unknown): value is Property {
   if (!value || typeof value !== "object") return false;
@@ -112,7 +152,10 @@ export function loadWorkspace(): Workspace {
             typeof r.propertyId === "string",
         )
       )
-        return data;
+        return {
+          ...data,
+          turnovers: Array.isArray(data.turnovers) ? data.turnovers : [],
+        };
     }
     const legacy = JSON.parse(
       localStorage.getItem("picsyproof-pilot-v1") || "null",
@@ -125,6 +168,7 @@ export function loadWorkspace(): Workspace {
           image: p.id === "loft" ? "/images/living.jpg" : "/images/bedroom.jpg",
         })),
         records: [],
+        turnovers: [],
       };
   } catch {
     /* A corrupt or unavailable store leaves the usable sample workspace. */
@@ -138,6 +182,11 @@ export function withoutPhotos(data: Workspace): Workspace {
       return task;
     });
   return {
+    ...data,
+    turnovers: (data.turnovers || []).map((t) => ({
+      ...t,
+      checklistSnapshot: strip(t.checklistSnapshot),
+    })),
     properties: data.properties.map(({ photos, ...p }) => {
       void photos; // Original property files remain in browser memory only.
       return {

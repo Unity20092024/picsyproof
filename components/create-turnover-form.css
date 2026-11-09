@@ -1,0 +1,592 @@
+.create-turnover-form {
+  padding: 8px 2px 0;
+}
+.turnover-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: grid;
+  gap: 15px;
+}
+.turnover-intro h1 {
+  font-size: 32px;
+}
+.turnover-intro > p {
+  max-width: 68%;
+  font-size: 13px;
+}
+.turnover-property-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px;
+  border-radius: 30px 32px 46px 25px;
+}
+.turnover-property-card > img {
+  width: 31%;
+  height: 100px;
+  border-radius: 24px 20px 35px 20px;
+}
+.turnover-property-card > div {
+  flex: 1;
+  min-width: 0;
+}
+.turnover-property-card h2 {
+  font-size: 23px;
+  overflow-wrap: anywhere;
+}
+.turnover-property-card p {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+.turnover-property-card small {
+  font-size: 10px;
+  color: var(--muted);
+}
+.turnover-property-card > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--accent);
+  background: var(--soft);
+  font-size: 11px;
+  min-height: 44px;
+  padding: 8px;
+  border-radius: 16px 15px 23px 15px;
+}
+.schedule-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.schedule-field {
+  min-width: 0;
+  padding: 15px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 25px 25px 40px 22px;
+  box-shadow: var(--shadow);
+}
+.schedule-field > label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 650;
+  font-size: 14px;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.schedule-field label svg {
+  color: var(--accent);
+  width: 22px;
+}
+.create-turnover-form .schedule-field input {
+  font-size: 16px;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px;
+  border: 0;
+  background: var(--soft);
+  border-radius: 12px;
+  color: var(--ink);
+}
+.schedule-field > small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.zone-notice {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+  margin: -5px 4px 0;
+  overflow-wrap: anywhere;
+}
+.assign-cleaner {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px;
+  text-align: left;
+  width: 100%;
+  min-height: 82px;
+}
+.assign-cleaner > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.assign-cleaner strong {
+  font-size: 15px;
+  display: block;
+}
+.assign-cleaner small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.assign-cleaner > img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+}
+.assign-cleaner > svg {
+  color: var(--accent);
+}
+.turnover-icon,
+.cleaner-initials {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 43px;
+  height: 43px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 45% 50% 55% 45%;
+  font-size: 13px;
+  font-weight: 650;
+}
+.turnover-checklist {
+  padding: 18px 14px;
+}
+.turnover-checklist h2 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 26px;
+  margin-bottom: 14px;
+}
+.turnover-checklist h2 svg {
+  color: var(--accent);
+  width: 24px;
+}
+.turnover-checklist-choice {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 12px 10px;
+  min-height: 62px;
+  border: 1px solid var(--line);
+  background: var(--canvas);
+  border-radius: 20px 21px 32px 17px;
+  text-align: left;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+.turnover-checklist-choice > svg {
+  color: var(--accent);
+  width: 20px;
+  flex-shrink: 0;
+}
+.turnover-checklist-choice > span {
+  flex: 1;
+  min-width: 0;
+}
+.turnover-checklist-choice strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.turnover-checklist-choice small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.turnover-checklist-choice.is-selected {
+  background: var(--soft);
+  border-color: var(--accent);
+}
+.swoop-toggle {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 16px 2px 8px;
+  border-top: 1px solid var(--line);
+  margin-top: 7px;
+}
+.swoop-toggle > div {
+  flex: 1;
+  min-width: 0;
+}
+.swoop-toggle strong {
+  font-size: 14px;
+}
+.swoop-toggle p {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-top: 4px;
+}
+.swoop-toggle > button {
+  width: 55px;
+  min-width: 55px;
+  height: 44px;
+  border-radius: 25px;
+  background: var(--line);
+  padding: 7px;
+  position: relative;
+}
+.swoop-toggle > button > span {
+  display: block;
+  width: 29px;
+  height: 29px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 2px 6px #27143622;
+  transition: transform 0.15s;
+}
+.swoop-toggle > button[aria-checked="true"] {
+  background: var(--gradient);
+}
+.swoop-toggle > button[aria-checked="true"] > span {
+  transform: translateX(12px);
+}
+.mandatory-note {
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0 3px 8px;
+}
+.mandatory-note svg {
+  vertical-align: middle;
+  margin-right: 4px;
+}
+.special-instructions {
+  padding: 18px 15px;
+}
+.special-instructions > label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 650;
+  font-size: 15px;
+}
+.special-instructions label svg {
+  color: var(--accent);
+}
+.special-instructions textarea {
+  font: inherit;
+  resize: vertical;
+  width: 100%;
+  max-width: 100%;
+  min-height: 110px;
+  padding: 12px;
+  margin-top: 10px;
+  border: 1px solid var(--line);
+  border-radius: 17px 18px 30px 15px;
+  background: var(--canvas);
+  color: var(--ink);
+  font-size: 16px;
+}
+.special-instructions > small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  text-align: right;
+}
+.duration-selector {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.duration-selector > svg {
+  color: var(--accent);
+  width: 22px;
+  flex-shrink: 0;
+}
+.duration-selector > label {
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  min-width: 100px;
+}
+.duration-selector small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 3px;
+}
+.create-turnover-form .duration-selector > input[type="number"][id] {
+  width: 100px;
+  min-height: 44px;
+  font-size: 16px;
+  padding: 8px;
+  border-radius: 15px;
+  border: 1px solid var(--line);
+  background: var(--canvas);
+  color: var(--ink);
+}
+.duration-selector .field-error {
+  width: 100%;
+}
+.create-turnover-button {
+  width: 100%;
+  font-size: 20px;
+  min-height: 58px;
+  margin-top: 4px;
+}
+.create-turnover-form .property-storage-note {
+  margin-top: 0;
+}
+.turnover-panel {
+  background: var(--canvas);
+}
+.turnover-panel h2 {
+  padding-right: 30px;
+}
+.selector-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 10px;
+  color: var(--accent);
+}
+.selector-search input {
+  min-width: 0;
+}
+.selection-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+.selection-list > button {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 67px;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 18px 20px 32px 17px;
+  text-align: left;
+}
+.selection-list button[aria-pressed="true"] {
+  background: var(--soft);
+  border-color: var(--accent);
+}
+.selection-list button > img {
+  width: 60px;
+  height: 55px;
+  border-radius: 15px 15px 23px 13px;
+}
+.selection-list button > span:not(.cleaner-initials) {
+  flex: 1;
+  min-width: 0;
+}
+.selection-list strong {
+  display: block;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.selection-list small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+.selection-list svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.turnover-job-meta {
+  background: var(--soft);
+  padding: 20px;
+  border-radius: 22px 22px 40px 20px;
+  margin: 18px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.turnover-job-meta h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+.turnover-job-meta p {
+  font-size: 13px;
+  margin: 8px 0;
+}
+.scheduled-job-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 22px 23px 38px 20px;
+  width: 100%;
+  padding: 17px;
+  margin: 12px 0;
+}
+.scheduled-job-row > span {
+  flex: 1;
+  min-width: 0;
+}
+.scheduled-job-row strong {
+  display: block;
+  font-size: 14px;
+}
+.scheduled-job-row small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+.scheduled-job-row svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.turnover-success {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--soft);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 17px;
+  border-radius: 22px;
+  margin: 18px 0;
+  font-size: 13px;
+}
+.turnover-success svg {
+  color: var(--accent);
+}
+.create-turnover-form .custom-checklist-editor input:not([type="checkbox"]) {
+  width: 100%;
+  font-size: 16px;
+  min-height: 44px;
+  padding: 9px;
+  background: var(--canvas);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.create-turnover-form .custom-checklist-editor .photo-required-label {
+  display: flex;
+  align-items: center;
+}
+.create-turnover-form .custom-checklist-editor ol {
+  list-style: none;
+  padding: 0;
+}
+.turnover-panel .swoop-button {
+  width: auto;
+}
+.turnover-panel .action-row {
+  justify-content: flex-end;
+}
+@media (max-width: 379px) {
+  .turnover-intro h1 {
+    font-size: 29px;
+  }
+  .turnover-property-card {
+    gap: 7px;
+  }
+  .turnover-property-card h2 {
+    font-size: 20px;
+  }
+  .turnover-property-card > button {
+    font-size: 10px;
+    padding: 6px;
+  }
+  .schedule-grid {
+    gap: 9px;
+  }
+  .schedule-field {
+    padding: 13px 8px;
+  }
+  .turnover-property-card > img {
+    height: 100px;
+  }
+  .turnover-checklist {
+    padding: 16px 12px;
+  }
+}
+@media (min-width: 600px) {
+  .turnover-intro h1 {
+    font-size: 45px;
+  }
+  .turnover-intro > p {
+    font-size: 16px;
+    max-width: 60%;
+  }
+  .turnover-fields {
+    gap: 20px;
+  }
+  .turnover-property-card > img {
+    width: 28%;
+    height: 165px;
+  }
+  .turnover-property-card h2 {
+    font-size: 34px;
+  }
+  .turnover-property-card p {
+    font-size: 15px;
+  }
+  .turnover-property-card > button {
+    font-size: 14px;
+    padding: 12px 20px;
+    margin-right: 15px;
+  }
+  .schedule-field {
+    padding: 20px;
+  }
+  .assign-cleaner {
+    padding: 20px;
+  }
+  .turnover-checklist {
+    padding: 25px;
+  }
+  .turnover-checklist-choice {
+    padding: 16px;
+    min-height: 75px;
+  }
+  .turnover-checklist-choice strong {
+    font-size: 15px;
+  }
+  .turnover-checklist-choice small {
+    font-size: 12px;
+  }
+  .turnover-checklist-choice > span {
+    font-size: 15px;
+  }
+  .swoop-toggle strong {
+    font-size: 16px;
+  }
+  .swoop-toggle p {
+    font-size: 13px;
+  }
+  .mandatory-note {
+    font-size: 12px;
+  }
+  .special-instructions {
+    padding: 23px;
+  }
+  .zone-notice {
+    font-size: 12px;
+  }
+  .create-turnover-button {
+    min-height: 66px;
+    font-size: 23px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .swoop-toggle > button > span {
+    transition: none;
+  }
+}

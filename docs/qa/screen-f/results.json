@@ -1,0 +1,10 @@
+{
+  "checkedAt": "2026-11-09T20:01:42.261Z",
+  "results": [
+    "Older workspace migrated without changing property progress or completed reports; valid scheduling, property time zone conversion, demo cleaner and notification preference, alternative/custom checklist, instructions, estimate, missing-photo gate, local save retry and duplicate-submit protection passed.",
+    "Property launch preselects and returns to originating property; searchable property change and confirmation, fresh defaults, Unassigned, independent multiple jobs, immutable completed snapshots, property history and reload/photo-expiry behavior passed.",
+    "360/390/430/768/1440px light and dark layouts, native date/time controls, functioning header, focused layout without bottom navigation, System theme and WCAG A/AA scans passed.",
+    "Empty workspace Add Property action and explicit device-zone fallback passed; no browser runtime errors."
+  ],
+  "errors": []
+}
