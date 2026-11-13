@@ -8,7 +8,10 @@
     "start": "next start",
     "test:ui": "node tests/verify.cjs",
     "typecheck": "tsc --noEmit",
-    "test:navigation": "node tests/navigation.cjs"
+    "test:navigation": "node tests/navigation.cjs",
+    "test:property-form": "node tests/property-form.cjs",
+    "test:create-turnover": "node tests/create-turnover.cjs",
+    "test:scheduling": "node tests/scheduling.cjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

@@ -40,3 +40,11 @@ npm run test:navigation
 Browser tests use installed Chromium at `/usr/bin/chromium`. Set `CHROMIUM_PATH` for another installation and `BASE_URL` for a different app address. Test dependencies are development-only. Tests use isolated local browser contexts.
 
 See [QA and delivery notes](docs/BUILD-NOTES.md), [mobile navigation diagnosis](docs/NAVIGATION-QA.md), and [screenshots](docs/qa/).
+
+## Screen C — Add New Property
+
+The full property setup form replaces the former small dialog, with local photo previews, cover/reorder controls, property details, default/copied/custom checklists, turnover preferences and unsaved-change protection. See [Screen C implementation and QA](docs/SCREEN-C.md). Run its browser checks with `npm run test:property-form`.
+
+## Screen F — Create Turnover
+
+Schedule independent local turnovers with date/time, explicit time-zone handling, cleaner preferences, immutable checklist snapshots, photo requirements, instructions and duration. Jobs appear in the existing Turnovers Dashboard and property history and open the existing cleaner workflow. See [Screen F implementation, migration and QA](docs/SCREEN-F.md). Run `npm run test:scheduling` and, with the app running, `npm run test:create-turnover`.

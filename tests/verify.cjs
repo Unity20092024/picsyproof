@@ -100,14 +100,27 @@ const fs = require("node:fs");
   await nav("home");
   await axe("Light dashboard");
   await page.getByRole("button", { name: "Add Property", exact: true }).click();
-  assert(await page.locator("dialog").evaluate((d) => d.open));
   await page
-    .getByLabel("Property name", { exact: true })
+    .getByRole("heading", { name: "Add New Property", exact: true })
+    .waitFor();
+  await page
+    .getByLabel("Property Name", { exact: false })
     .fill("QA Seaside Cottage");
-  await page.getByLabel("City / location").fill("Charleston, SC");
+  await page.getByLabel("Address", { exact: false }).fill("Charleston, SC");
   await page
-    .locator("dialog")
-    .getByRole("button", { name: "Add Property", exact: true })
+    .getByLabel("Property Type", { exact: false })
+    .selectOption("Cottage");
+  await page
+    .getByRole("button", { name: "Save Property", exact: true })
+    .click();
+  await page
+    .getByRole("button")
+    .filter({
+      has: page.getByRole("heading", {
+        name: "QA Seaside Cottage",
+        exact: true,
+      }),
+    })
     .click();
   await page.getByRole("button", { name: "Open cleaning checklist" }).click();
   assert(
@@ -251,10 +264,15 @@ const fs = require("node:fs");
   );
   await nav("home");
   await page.getByRole("button", { name: "Add Property", exact: true }).click();
-  await page.keyboard.press("Escape");
-  assert.equal(await page.locator("dialog").evaluate((d) => d.open), false);
+  await page
+    .getByRole("button", { name: "Back to My Properties", exact: true })
+    .click();
+  assert.match(
+    await page.locator("main").getAttribute("aria-label"),
+    /properties/,
+  );
   results.push(
-    "Mobile menu, settings save, native dialog Escape and navigation",
+    "Mobile menu, settings save, Screen C back button and navigation",
   );
   assert.deepEqual(errors, []);
   results.push(

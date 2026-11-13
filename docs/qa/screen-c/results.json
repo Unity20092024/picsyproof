@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-11-09T08:56:44.730Z",
+  "results": [
+    "Dashboard and My Properties open Screen C; back, menu and browser Back guard dirty state; Enter does not submit; required validation creates no record.",
+    "Three photo selections, cover change, photo reorder/removal, original image preview and invalid/oversized/unreadable-file rejection passed; temporary URLs released on removal.",
+    "Custom task add/edit/delete/reorder and required-photo flag; studio bedrooms 0, half bathroom 1.5, guest count, Other type, custom frequency and storage-failure retry passed; repeated submission created exactly one record.",
+    "The saved required-photo flag is honored by the existing turnover completion gate.",
+    "Copy preserves source, resets task state and retains photo-required flags; default retains current six-task checklist; new properties appear immediately and dashboard count updates.",
+    "Light and dark layouts passed at 360/390/430/768/1440px with no horizontal overflow; system appearance follows device changes; axe WCAG A/AA checks passed for empty light, populated custom and dark form.",
+    "Cancel discards and revokes temporary photo URLs; saved metadata survives reload while photos expire; existing data remains unchanged; empty-source copy disabled; no browser runtime errors."
+  ],
+  "errors": []
+}
